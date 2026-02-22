@@ -1,16 +1,29 @@
 import asyncio
 import random
 
-from Server.Server import SensorServer
-
 from aioconsole import ainput
+
+from Server.ServerM import SensorServer
+
 async def server_cli(protocol: SensorServer):
     while True:
         cmd = (await ainput("Server command (noack/exit): ")).strip().lower()
         if cmd == "exit":
             print("Stopping server CLI")
             break
+        elif cmd == "noack":
 
+            if not protocol.sensors:
+                print("No sensors registered yet.")
+                continue
+            print("Registered sensors:")
+            for d, s in protocol.sensors.items():
+                print(f"- {s.sensor_id} ({d})")
+            sid = (await ainput("Enter sensor_id for no-ACK mode: ")).strip().upper()
+            if any(s.sensor_id == sid for s in protocol.sensors.values()):
+                protocol.set_no_ack(sid, count=3)
+            else:
+                print("Unknown sensor_id")
         else:
             print("Unknown command")
 async def main():
